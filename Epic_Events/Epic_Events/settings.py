@@ -17,8 +17,8 @@ import os
 db_config_path = os.path.join(os.path.dirname(__file__), 'db_config.ini')
 
 #loading db_config info
-config = configparser.ConfigParser()
-config.read(db_config_path)
+db_config = configparser.ConfigParser()
+db_config.read(db_config_path)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'CustomUser',
 ]
 
 MIDDLEWARE = [
@@ -80,16 +81,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Epic_Events.wsgi.application'
 
 
-# Database
+# Database : MySQL
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config.get('mysql', 'database'),
-        'USER': config.get('mysql', 'user'),
-        'PASSWORD': config.get('mysql', 'password'),
-        'HOST': 'localhost',  # should match the mysql server adress
+        'NAME': db_config.get('mysql', 'database_name'),
+        'USER': db_config.get('mysql', 'username'),
+        'PASSWORD': db_config.get('mysql', 'password'),
+        'HOST': 'localhost',  # Using the mysql server address
         'PORT': '3306',
     }
 }
@@ -113,6 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'CustomUser.CustomUserAccount'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
