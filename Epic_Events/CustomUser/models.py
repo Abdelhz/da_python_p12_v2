@@ -1,5 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
+from django.contrib.auth.models import AbstractUser, BaseUserManager, PermissionsMixin, Permission
+from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 
 class TeamManagement(models.Manager):
@@ -126,3 +128,16 @@ class CustomUserAccount(AbstractUser, PermissionsMixin):
     def __str__(self) -> str:
         """returns user contact info"""
         return f"username: {self.username}, email: {self.email}, phone: {self.phone}"
+
+
+class CustomToken(Token):
+    expires_at = models.DateTimeField()
+    
+    def refresh(self):
+        self.expires_at = timezone.now() + timezone.timedelta(hours=1)
+        self.save()
+        return self
+
+    def save(self, *args, **kwargs):
+        self.expires_at = timezone.now() + timezone.timedelta(hours=1)
+        super().save(*args, **kwargs)
