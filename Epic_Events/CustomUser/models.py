@@ -8,12 +8,7 @@ class TeamManagement(models.Manager):
     def create_team(self, team_name, permissions):
         team, created = self.get_or_create(name=team_name)
         if created:
-            for perm_codename in permissions:
-                try:
-                    perm = Permission.objects.get(codename=perm_codename)
-                    team.permissions.add(perm)
-                except Permission.DoesNotExist:
-                    print(f'Permission "{perm_codename}" does not exist.')
+            team.permissions = permissions
         return team
 
     def create_management_team(self):
@@ -72,6 +67,15 @@ class CustomUserAccountManager(BaseUserManager):
 
 
     def create_superuser(self, username, email, first_name, last_name, phone, password):
+
+        '''# Check if any superusers already exist
+        if self.model.objects.filter(is_superuser=True).exists():
+            # If they do, enforce the rule that only a superuser can create another superuser
+            # You can do this by checking the currently logged in user
+            # This will depend on how you handle authentication in your application
+            current_user = get_current_user()
+            if not current_user.is_superuser:
+                raise ValueError('Only a superuser can create another superuser.')'''
 
         user = self.create_user(username=username, email=email, first_name=first_name,
                                 last_name=last_name, phone=phone, password=password)
