@@ -1,6 +1,6 @@
 # Python
 from django.core.management.base import BaseCommand, CommandError
-from CustomUser.models import Team
+from CustomUser.models import Team, CustomUserAccount
 
 class Command(BaseCommand):
     help = 'Manage teams'
