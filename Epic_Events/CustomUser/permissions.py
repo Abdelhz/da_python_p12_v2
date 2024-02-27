@@ -1,5 +1,9 @@
 from CustomUser.models import CustomUserAccount, CustomToken
 from Epic_Events.Epic_Event.utils import verify_token
+from pathlib import Path
+import json
+
+KEY_FILE = Path.home() / 'my_app_key.json'
 
 class IsAuthenticated:
     def __init__(self, user: CustomUserAccount):
@@ -12,6 +16,7 @@ class IsAuthenticated:
     def has_permission(self):
         # Check if the token exists, belongs to the user, the user is active, and the token is valid
         return self.token is not None and self.token.user == self.user and self.user.is_active and verify_token(self.token)
+
 
 class IsSuperuser:
     def __init__(self, user: CustomUserAccount):

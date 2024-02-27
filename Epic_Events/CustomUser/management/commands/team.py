@@ -2,6 +2,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from CustomUser.models import Team, CustomUserAccount
 
+
+valid_team_names = ['sales', 'management', 'support']
+
 class Command(BaseCommand):
     help = 'Manage teams'
 
@@ -25,11 +28,36 @@ class Command(BaseCommand):
             raise CommandError('Invalid command')
 
     def list_teams(self):
-        for team in Team.objects.all():
-            self.stdout.write(str(team))
+        current_user_name = options['current_user'] or input("Enter current user's username: ")
+        try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission()
+            
+            if not permission:
+                raise CommandError('You are not authenticated')
+            
+            for team in Team.objects.all():
+                self.stdout.write(str(team))
+        
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('User does not exist')
 
     def create_team(self, options):
-        team_name = options['team_name'] or input('Enter team name: ')
+        current_user_name = options['current_user'] or input("Enter current user's username: ")
+        
+        team_name = (options['team_name'] or input('Enter team name: ')).lower()
+        while team_name not in valid_team_names:
+            print(f'Invalid team name: {team_name}. Valid team_name options are : {", ".join(valid_team_names)}')
+            team_name = input(USER_DESCRIPTIONS['team_name']).lower()
+        
+        try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission() and IsSuperuser(current_user).has_permission()
+            if not permission:
+                raise CommandError('You are not a superuser and do not have permission to create a team.')
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('Current user does not exist')
+        
         try:
             team_creation_method = getattr(Team.objects, f'create_{team_name}_team', None)
             if not team_creation_method:
@@ -40,7 +68,21 @@ class Command(BaseCommand):
             raise CommandError(str(e))
 
     def delete_team(self, options):
-        team_name = options['team_name'] or input('Enter name of team to delete: ')
+        current_user_name = options['current_user'] or input("Enter current user's username: ")
+        
+        team_name = (options['team_name'] or input('Enter name of team to delete: ')).lower()
+        while team_name not in valid_team_names:
+            print(f'Invalid team name: {team_name}. Valid team_name options are : {", ".join(valid_team_names)}')
+            team_name = input(USER_DESCRIPTIONS['team_name']).lower()
+        
+        try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission() and IsSuperuser(current_user).has_permission()
+            if not permission:
+                raise CommandError('You are not a superuser and do not have permission to delete a team.')
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('Current user does not exist')
+        
         try:
             team = Team.objects.get(name=team_name)
             team.delete()
@@ -49,9 +91,22 @@ class Command(BaseCommand):
             raise CommandError('Team does not exist')
 
     def read_team(self, options):
+        current_user_name = options['current_user'] or input("Enter current user's username: ")
+        
         team_name = options['team_name'] or input('Enter name of team to read: ')
+        
+        try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission()
+            if not permission:
+                raise CommandError('You are not authenticated.')
+        
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('User does not exist')
+
         try:
             team = Team.objects.get(name=team_name)
             self.stdout.write(str(team))
+
         except Team.DoesNotExist:
             raise CommandError('Team does not exist')
