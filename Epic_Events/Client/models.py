@@ -5,9 +5,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class ClientManager(models.Manager):
     def create_client(self, full_name, email, phone_number, company_name, address, contact_sales_EE, information):
-        unique_id = self.generate_unique_id()
+        
         client = self.create(
-            unique_id=unique_id,
             full_name=full_name,
             email=email,
             phone_number=phone_number,
@@ -23,15 +22,6 @@ class ClientManager(models.Manager):
             setattr(client, attr, value)
         client.save()
         return client
-    
-    def generate_unique_id(self):
-        unique_id = self.format_unique_id(str(random.randint(10**14, 10**15 - 1)))
-        while self.filter(unique_id=unique_id).exists():
-            unique_id = self.format_unique_id(str(random.randint(10**14, 10**15 - 1)))
-        return unique_id
-
-    def format_unique_id(self, unique_id):
-        return '-'.join([unique_id[i:i+4] for i in range(0, len(unique_id), 4)])
 
 
 class Client(models.Model):
@@ -39,7 +29,6 @@ class Client(models.Model):
     email = models.EmailField(max_length=50, blank=False, null=False)
     phone_number = PhoneNumberField(blank=False, null=False)
     company_name = models.CharField(max_length=150, blank=False, null=False, unique=True)
-    unique_id = models.CharField(max_length=50, blank=False, null=False, unique=True)
     creation_date = models.DateField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
     contact_sales_EE = models.ForeignKey(CustomUserAccount, on_delete=models.SET_NULL, null=True)
