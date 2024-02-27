@@ -70,6 +70,7 @@ class Command(BaseCommand):
         last_name = options['last_name'] or input(USER_DESCRIPTIONS['last_name'])
         phone_number = options['phone_number'] or input(USER_DESCRIPTIONS['phone_number'])
         password = getpass('Enter password: ')
+        
         team_name = (options['team_name'] or input(USER_DESCRIPTIONS['team_name'])).lower()
         while team_name not in valid_team_names:
             print(f'Invalid team name: {team_name}. Valid team_name options are : {", ".join(valid_team_names)}')
@@ -77,7 +78,7 @@ class Command(BaseCommand):
         
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
-            permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsManager(current_user).has_permission)
+            permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsManager(current_user).has_permission())
             if not permission:
                 raise CommandError('Current user is not authenticated and/or does not have permission to create a new user')
         except CustomUserAccount.DoesNotExist:
@@ -99,6 +100,7 @@ class Command(BaseCommand):
         last_name = options['last_name'] or input(USER_DESCRIPTIONS['last_name'])
         phone_number = options['phone_number'] or input(USER_DESCRIPTIONS['phone_number'])
         password = getpass('Enter password: ')
+        
         team_name = (options['team_name'] or input(USER_DESCRIPTIONS['team_name'])).lower()
         while team_name not in valid_team_names:
             print(f'Invalid team name: {team_name}. Valid team_name options are : {", ".join(valid_team_names)}')
@@ -129,7 +131,7 @@ class Command(BaseCommand):
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
             user = CustomUserAccount.objects.get(username=username)
-            permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsSameUser(user, current_user))
+            permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsSameUser(user, current_user) or IsManager(current_user).has_permission())
             
             if permission:
                 user.delete()
@@ -143,7 +145,7 @@ class Command(BaseCommand):
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
             user = CustomUserAccount.objects.get(username=username)
-            Permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsSameUser(user, current_user))
+            Permission = IsAuthenticated(current_user).has_permission() and (IsSuperuser(current_user).has_permission() or IsSameUser(user, current_user) or IsManager(current_user).has_permission())
             
             if Permission:
                 with transaction.atomic():

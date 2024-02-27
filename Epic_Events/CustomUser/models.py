@@ -138,10 +138,13 @@ class CustomToken(Token):
     expires_at = models.DateTimeField()
     
     def refresh(self):
+        self.key = self.generate_key()
         self.expires_at = timezone.now() + timezone.timedelta(hours=1)
         self.save()
         return self
 
     def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
         self.expires_at = timezone.now() + timezone.timedelta(hours=1)
         super().save(*args, **kwargs)
