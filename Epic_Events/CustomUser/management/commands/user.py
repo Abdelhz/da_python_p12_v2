@@ -51,9 +51,16 @@ class Command(BaseCommand):
             raise CommandError('Invalid command')
 
     def list_users(self):
-
+        current_user_name = options['current_user'] or input("Enter current user's username: ")
         try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission()
+            
+            if not permission:
+                raise CommandError('You are not authenticated')
+
             users = CustomUserAccount.objects.all()
+            
             if not users:
                 self.stdout.write('No users exist.')
             else:
@@ -61,6 +68,8 @@ class Command(BaseCommand):
                     self.stdout.write(f'Username: {user.username}, First Name: {user.first_name}, Last Name: {user.last_name}, Last Login: {user.last_login}')
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('User does not exist')
 
     def create_user(self, options):
         current_user_name = options['current_user'] or input(USER_DESCRIPTIONS['current_user'])

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     "phonenumber_field",
     'CustomUser',
+    'Client',
 ]
 
 REST_FRAMEWORK = {

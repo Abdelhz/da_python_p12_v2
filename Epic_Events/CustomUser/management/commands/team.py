@@ -14,6 +14,7 @@ class Command(BaseCommand):
         parser.add_argument('-delete', action='store_true', help='Delete a team')
         parser.add_argument('-read', action='store_true', help='Read a team details')
         parser.add_argument('team_name', nargs='?', type=str)
+        parser.add_argument('current_user', nargs='?', type=str)
 
     def handle(self, *args, **options):
         if options['list']:
