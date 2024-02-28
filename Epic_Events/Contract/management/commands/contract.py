@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 self.stdout.write('No contracts exist.')
             else:
                 for contract in contracts:
-                    self.stdout.write(f'Contract ID: {contract.id}, Client: {contract.client.full_name}, Status: {contract.status}')
+                    self.stdout.write(str(contract))
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
 
@@ -89,11 +89,11 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("Contracts that are not signed : ")
                 for none_signed_contract in none_signed_contracts:
-                    self.stdout.write(str(contract))
+                    self.stdout.write(str(none_signed_contract))
                 
                 self.stdout.write("Contracts that are not fully payed for : ")
                 for not_fully_payed_contract in not_fully_payed_contracts:
-                            self.stdout.write(str(contract))
+                            self.stdout.write(str(not_fully_payed_contract))
         
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
@@ -102,9 +102,9 @@ class Command(BaseCommand):
         current_user_name = options['current_user'] or input(CONTRACT_DESCRIPTIONS['current_user'])
         client_name = options['client'] or input(CONTRACT_DESCRIPTIONS['client'])
         
-        signature_status = get_signature_status(options)
-        total_amount = get_total_amount(options)
-        remaining_amount = get_remaining_amount(options)
+        signature_status = get_signature_status(options, CONTRACT_DESCRIPTIONS)
+        total_amount = get_total_amount(options, CONTRACT_DESCRIPTIONS)
+        remaining_amount = get_remaining_amount(options, CONTRACT_DESCRIPTIONS)
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -202,7 +202,7 @@ class Command(BaseCommand):
 
         try:
             contract = Contract.objects.get(id=contract_id)
-            self.stdout.write(f'Contract ID: {contract.id}, Client: {contract.client.full_name}, Status: {contract.status}, Amount: {contract.amount}, Payment Due: {contract.payment_due}')
+            self.stdout.write(str(contract))
         except Contract.DoesNotExist:
             raise CommandError('Contract does not exist')
         except Exception as e:
