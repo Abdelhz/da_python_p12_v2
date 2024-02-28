@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'CustomUser',
     'Client',
     'Contract',
+    'Event',
 ]
 
 REST_FRAMEWORK = {
