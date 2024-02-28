@@ -49,3 +49,28 @@ def refresh_or_create_token(user):
     except Exception as e:
         print(e)
         return None
+
+
+def get_signature_status(options):
+    while True:
+        signature_status_str = (options['signature_status'] or input(CONTRACT_DESCRIPTIONS['signature_status'])).lower()
+        if signature_status_str in ['true', '1', 'yes']:
+            return True
+        elif signature_status_str in ['false', '0', 'no']:
+            return False
+        else:
+            print("Invalid input. Please enter either : 'true', '1', 'yes' for True or : 'false', '0', 'no' for False.")
+
+def get_total_amount(options):
+    while True:
+        try:
+            return float(options['total_amount'] or input(CONTRACT_DESCRIPTIONS['total_amount']))
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+def get_remaining_amount(options):
+    while True:
+        try:
+            return float(options['remaining_amount'] or input(CONTRACT_DESCRIPTIONS['remaining_amount']))
+        except ValueError:
+            print("Invalid input. Please enter a number.")

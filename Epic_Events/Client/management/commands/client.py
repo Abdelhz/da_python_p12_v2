@@ -150,32 +150,31 @@ class Command(BaseCommand):
         
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
-            permission = IsAuthenticated(current_user).has_permission() and IsSales(current_user).has_permission() and IsClientContact(current_user).has_permission()
+            client = Client.objects.get(full_name=full_name)
+            permission = IsAuthenticated(current_user).has_permission() and IsSales(current_user).has_permission() and IsClientContact(current_user, client).has_permission()
         except CustomUserAccount.DoesNotExist:
             raise CommandError('Current user does not exist')
-        
+        except Client.DoesNotExist:
+            raise CommandError('Client does not exist')
+
         if not permission:
             raise CommandError("You are not authenticated or you are not the client's contact")
         
-        try:
-            client = Client.objects.get(full_name=full_name)
-            with transaction.atomic():
-                update_fields = {}
-                for field in ['email', 'full_name', 'phone_number', 'company_name', 'contact_sales_EE', 'information']:
-                    value = options[field] or input(f'Enter new {field}: ')
-                    if value: # Check if value is not an empty string
-                        if field == 'contact_sales_EE':
-                            try:
-                                contact_sales_EE = CustomUserAccount.objects.get(username=value)
-                            except CustomUserAccount.DoesNotExist:
-                                raise CommandError(f'Epic Events contact {value} does not exist')
-                            value = contact_sales_EE
-                        update_fields[field] = value
+        with transaction.atomic():
+            update_fields = {}
+            for field in ['email', 'full_name', 'phone_number', 'company_name', 'contact_sales_EE', 'information']:
+                value = options[field] or input(f'Enter new {field}: ')
+                if value: # Check if value is not an empty string
+                    if field == 'contact_sales_EE':
+                        try:
+                            contact_sales_EE = CustomUserAccount.objects.get(username=value)
+                        except CustomUserAccount.DoesNotExist:
+                            raise CommandError(f'Epic Events contact {value} does not exist')
+                        value = contact_sales_EE
+                    update_fields[field] = value
 
-                client = Client.objects.update_client(client, **update_fields)
-                self.stdout.write(f'Successfully updated client {client.full_name}')
-        except Client.DoesNotExist:
-            raise CommandError('Client does not exist')
+            client = Client.objects.update_client(client, **update_fields)
+            self.stdout.write(f'Successfully updated client {client.full_name}')
 
     def read_client(self, options):
         current_user_name = options['current_user'] or input(CLIENT_DESCRIPTIONS['current_user'])
@@ -184,7 +183,7 @@ class Command(BaseCommand):
         
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
-            permission = IsAuthenticated(current_user).has_permission() and IsSales(current_user).has_permission() and IsClientContact(current_user).has_permission()
+            permission = IsAuthenticated(current_user).has_permission()
         except CustomUserAccount.DoesNotExist:
             raise CommandError('Current user does not exist')
         

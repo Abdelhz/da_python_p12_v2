@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     'CustomUser',
     'Client',
+    'Contract',
 ]
 
 REST_FRAMEWORK = {
