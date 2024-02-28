@@ -35,8 +35,8 @@ class Contract(models.Model):
     unique_id = models.CharField(max_length=50, blank=False, null=False, unique=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     contact_sales_EE = models.ForeignKey(CustomUserAccount, on_delete=models.SET_NULL, null=True)
-    total_amount = models.FloatField(max_digits=10, decimal_places=2)
-    remaining_amount = models.FloatField(max_digits=10, decimal_places=2)
+    total_amount = models.FloatField(blank=False, null=False)
+    remaining_amount = models.FloatField(blank=False, null=False)
     creation_date = models.DateField(auto_now_add=True)
     signature_status = models.BooleanField(default=False)
 
