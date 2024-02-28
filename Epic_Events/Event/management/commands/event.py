@@ -53,7 +53,7 @@ class Command(BaseCommand):
             raise CommandError('Invalid command')
 
 
-    def list_event(self):
+    def list_events(self):
         current_user_name = options['current_user'] or input(EVENT_DESCRIPTIONS['current_user'])
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)

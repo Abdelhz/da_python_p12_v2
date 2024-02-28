@@ -36,9 +36,6 @@ class Event(models.Model):
     attendees = models.IntegerField(null=True, blank=True)
     notes = models.TextField(max_length=2000, null=True, blank=True)
 
-
-
-
     objects = EventManager()
 
     def __str__(self):
