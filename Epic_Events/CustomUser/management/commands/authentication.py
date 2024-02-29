@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from CustomUser.models import CustomToken
-from Epic_Events.utils import refresh_or_create_token
+from Epic_Events.utils import refresh_or_create_token, verify_token
 
 #! CLean code here "User = get_user_model()" ?
 User = get_user_model()
@@ -26,17 +26,13 @@ class Command(BaseCommand):
             self.logout_user(options)
         else:
             pass
-            #! Not needed.
-            token = options['token']
-            if not self.verify_token(token):
-                raise CommandError('Invalid token')
 
     def login_user(self, options):
 
         username = options['username'] or input('Enter username: ')
         password = getpass('Enter password: ')
         user = authenticate(username=username, password=password)
-        
+
         if user is not None:
             try:
                 token = refresh_or_create_token(user)

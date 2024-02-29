@@ -7,7 +7,7 @@ from CustomUser.permissions import IsAuthenticated, IsSuperuser, IsSameUser, IsM
 from Client.permissions import IsClientContact, IsSales
 from Epic_Events.utils import get_signature_status, get_total_amount, get_remaining_amount
 
-CONTRACT_FIELDS = ['current_user', 'client', 'contact_sales_EE', 'signature_status', 'total_amount', 'remaining_amount']
+CONTRACT_FIELDS = ['current_user', 'client', 'contact_sales_EE', 'signature_status', 'total_amount', 'remaining_amount', 'contract_id']
 
 CONTRACT_DESCRIPTIONS = {
     'current_user': "Enter current user's username: ",
@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['list']:
-            self.list_contracts()
+            self.list_contracts(options)
         elif options['list_contact_contracts']:
             self.list_contact_contracts(options)
         elif options['create']:
@@ -48,7 +48,7 @@ class Command(BaseCommand):
             raise CommandError('Invalid command')
 
 
-    def list_contracts(self):
+    def list_contracts(self, options):
         current_user_name = options['current_user'] or input(CONTRACT_DESCRIPTIONS['current_user'])
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -122,14 +122,14 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 contract = Contract.objects.create_contract(client, total_amount, remaining_amount, signature_status)
-                self.stdout.write(f'Successfully created contract {contract.id} for client {client.full_name}')
+                self.stdout.write(f'Successfully created contract {contract.unique_id} for client {client.full_name}')
         
         except Exception as e:
             raise CommandError(str(e))
 
     def delete_contract(self, options):
         current_user_name = options['current_user'] or input(CONTRACT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -146,17 +146,17 @@ class Command(BaseCommand):
 
         try:
             contract.delete()
-            self.stdout.write(f'Successfully deleted contract with ID {contract.id}.')
+            self.stdout.write(f'Successfully deleted contract with ID {contract.unique_id}.')
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
 
     def update_contract(self, options):
         current_user_name = options['current_user'] or input(CONTRACT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
-            contract = Contract.objects.get(id=contract_id)
+            contract = Contract.objects.get(unique_id=contract_id)
             permission = IsAuthenticated(current_user).has_permission() and (IsSameUser(contract.contact_sales_EE, current_user).has_permission() or IsManager(current_user).has_permission())
         
         except CustomUserAccount.DoesNotExist:
@@ -172,24 +172,24 @@ class Command(BaseCommand):
             for field in ['signature_status', 'total_amount', 'remaining_amount']:
 
                 if field == 'total_amount':
-                    value = get_total_amount(options)
+                    value = get_total_amount(options, CONTRACT_DESCRIPTIONS)
                 elif field == 'remaining_amount':
-                    value = get_remaining_amount(options)
+                    value = get_remaining_amount(options, CONTRACT_DESCRIPTIONS)
                 elif field == 'signature_status':
-                    value = get_signature_status(options)
+                    value = get_signature_status(options, CONTRACT_DESCRIPTIONS)
                 
                 if value: # Check if value is not an empty string
                     update_fields[field] = value
             try:
                 contract = Contract.objects.update_contract(contract, **update_fields)
-                self.stdout.write(f'Successfully updated contract with ID {contract.id}.')
+                self.stdout.write(f'Successfully updated contract with ID {contract.unique_id}.')
             except Exception as e:
                 self.stdout.write('An error occurred: {}'.format(e))
 
 
     def read_contract(self, options):
         current_user_name = options['current_user'] or input(CONTRACT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -201,7 +201,7 @@ class Command(BaseCommand):
             raise CommandError('You do not have permission to read this contract.')
 
         try:
-            contract = Contract.objects.get(id=contract_id)
+            contract = Contract.objects.get(unique_id=contract_id)
             self.stdout.write(str(contract))
         except Contract.DoesNotExist:
             raise CommandError('Contract does not exist')

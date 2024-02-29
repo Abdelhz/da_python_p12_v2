@@ -9,9 +9,10 @@ from Client.permissions import IsClientContact, IsSales
 from Event.permissions import IsSupport, IsEventContact
 from Epic_Events.utils import get_attendees
 
-EVENT_FIELDS = ['current_user', 'event_name', 'contract', 'contact_support_EE', 'date_start', 'date_end', 'location', 'attendees', 'notes']
+EVENT_FIELDS = ['current_user', 'event_name', 'contract_id', 'contact_support_EE', 'date_start', 'date_end', 'location', 'attendees', 'notes']
 
 EVENT_DESCRIPTIONS = {
+    'current_user': "Enter current user's username: ",
     'event_name': "Enter event name: ",
     'contract': "Enter contract ID: ",
     'contact_support_EE': "Enter contact support EE's username: ",
@@ -33,12 +34,12 @@ class Command(BaseCommand):
         parser.add_argument('-update', action='store_true', help='Update an event')
         parser.add_argument('-read', action='store_true', help='Read an event details')
         
-        for field in CONTRACT_FIELDS:
+        for field in EVENT_FIELDS:
             parser.add_argument(field, nargs='?', type=str)
 
     def handle(self, *args, **options):
         if options['list']:
-            self.list_events()
+            self.list_events(options)
         elif options['list_contact_events']:
             self.list_contact_events(options)
         elif options['create']:
@@ -53,7 +54,7 @@ class Command(BaseCommand):
             raise CommandError('Invalid command')
 
 
-    def list_events(self):
+    def list_events(self, options):
         current_user_name = options['current_user'] or input(EVENT_DESCRIPTIONS['current_user'])
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -111,10 +112,10 @@ class Command(BaseCommand):
         if not permission:
             raise CommandError('You are not authenticated or you are not a member of the sales team.')
 
-        contract_id = options['contract'] or input(EVENT_DESCRIPTIONS['contract'])
+        contract_id = options['contract_id'] or input(EVENT_DESCRIPTIONS['contract'])
 
         try:
-            contract = Contract.objects.get(contract_id=contract_id)
+            contract = Contract.objects.get(unique_id=contract_id)
             client = contract.client
             permissions = IsClientContact(current_user, client).has_permission()
         except Contract.DoesNotExist:
@@ -134,19 +135,19 @@ class Command(BaseCommand):
         location = options['location'] or input(EVENT_DESCRIPTIONS['location'])
         notes = options['notes'] or input(EVENT_DESCRIPTIONS['notes'])
         
-        attendees = get_attendees(options)
+        attendees = get_attendees(options, EVENT_DESCRIPTIONS)
         
         try:
             with transaction.atomic():
                 event = Event.objects.create_event(event_name, contract, date_end, date_start, location, attendees, notes)
-                self.stdout.write(f'Successfully created contract {contract.id} for client {client.full_name}')
+                self.stdout.write(f'Successfully created contract {contract.unique_id} for client {client.full_name}')
         
         except Exception as e:
             raise CommandError(str(e))
 
     def delete_event(self, options):
         current_user_name = options['current_user'] or input(EVENT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -169,14 +170,14 @@ class Command(BaseCommand):
 
         try:
             event.delete()
-            self.stdout.write(f'Successfully deleted contract with ID {contract.id}.')
+            self.stdout.write(f'Successfully deleted contract with ID {contract.unique_id}.')
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
 
     def update_event(self, options):
         current_user_name = options['current_user'] or input(EVENT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
-        contact_support_EE_username = options['contact_support_EE'] or input(EVENT_DESCRIPTIONS['contact_support_EE'])
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
+        #contact_support_EE_username = options['contact_support_EE'] or input(EVENT_DESCRIPTIONS['contact_support_EE'])
 
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -192,7 +193,7 @@ class Command(BaseCommand):
             raise CommandError('Event does not exist')
 
         if not permission:
-            raise CommandError('You do not have permission to update this Event.')
+            raise CommandError('You are not authenticated or do not have permission to update this Event.')
 
         if IsManager(current_user).has_permission():
             fields = ['contact_support_EE']
@@ -214,16 +215,16 @@ class Command(BaseCommand):
                             raise CommandError('contact_support_EE is not a support team member.')
                         value = contact_support_EE
                     elif field == 'attendees':
-                        value = get_attendees(options)
+                        value = get_attendees(options, EVENT_DESCRIPTIONS)
                     update_fields[field] = value
 
-            event = Event.objects.update_event(client, **update_fields)
-            self.stdout.write(f'Successfully updated Event {event.name}')
+            event = Event.objects.update_event(event, **update_fields)
+            self.stdout.write(f'Successfully updated Event {event.event_name}')
 
 
     def read_event(self, options):
         current_user_name = options['current_user'] or input(EVENT_DESCRIPTIONS['current_user'])
-        contract_id = options['id'] or input("Enter contract's ID: ")
+        contract_id = options['contract_id'] or input("Enter contract's ID: ")
     
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)

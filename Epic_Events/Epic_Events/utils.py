@@ -6,7 +6,7 @@ import json
 KEY_FILE = Path.home() / '.my_app_key.json'
 
 
-def verify_token(self, token):
+def verify_token(token):
     # Check if the token is still valid
     if timezone.now() <= token.expires_at:
         # Check if the locally stored key matches the key in the token
@@ -21,9 +21,9 @@ def verify_token(self, token):
 def refresh_or_create_token(user):
     try:
         token, created = CustomToken.objects.get_or_create(user=user)
-        if not created:
-            if not self.verify_token(token):
-                token = token.refresh()
+        if not created and not verify_token(token):
+            token = token.refresh()
+        
         if KEY_FILE.exists():
             with open(KEY_FILE, 'r') as f:
                 data = json.load(f)
@@ -75,7 +75,7 @@ def get_remaining_amount(options, CONTRACT_DESCRIPTIONS):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-def get_attendees(options, CONTRACT_DESCRIPTIONS):
+def get_attendees(options, EVENT_DESCRIPTIONS):
     while True:
         try:
             return int(options['attendees'] or input(EVENT_DESCRIPTIONS['attendees']))

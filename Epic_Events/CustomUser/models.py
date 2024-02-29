@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, PermissionsMixin, Permission
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from django.db import transaction
 
 
 class TeamManagement(models.Manager):
@@ -25,7 +26,7 @@ class TeamManagement(models.Manager):
 
 class Team(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    permissions = models.ManyToManyField(Permission)
+    permissions = models.JSONField(default=list)
 
     objects = TeamManagement()
 
@@ -34,18 +35,25 @@ class Team(models.Model):
 
 
 class CustomUserAccountManager(BaseUserManager):
-    def create_user(self, username, first_name, last_name, email, phone_number, password, team_name=None):
+    def create_user(self, username, first_name, last_name, email, phone_number, password, team_name=None, **kwargs):
         try:
             with transaction.atomic(): 
-                for field in self.model.REQUIRED_FIELDS:
-                    if field not in kwargs or not kwargs[field]:
-                        raise ValueError(f"The {field} field is required.")
+                if not username:
+                    raise ValueError("Username is required.")
+                if not email:
+                    raise ValueError("Email is required.")
+                if not first_name:
+                    raise ValueError("First name is required.")
+                if not last_name:
+                    raise ValueError("Last name is required.")
+                if not team_name:
+                    raise ValueError("Team name is required.")
 
                 email = self.normalize_email(email)
 
                 user = self.model(username=username, email=email,
                                 first_name=first_name, last_name=last_name,
-                                phone_number=phone_number, team=team)
+                                phone_number=phone_number)
 
                 user.set_password(password)
 
@@ -66,7 +74,7 @@ class CustomUserAccountManager(BaseUserManager):
             raise ValueError(f"Unexpected error occurred while creating user: {str(e)}")
 
 
-    def create_superuser(self, username, email, first_name, last_name, phone, password):
+    def create_superuser(self, username, email, first_name, last_name, phone_number, password, team_name):
 
         '''# Check if any superusers already exist
         if self.model.objects.filter(is_superuser=True).exists():
@@ -77,16 +85,13 @@ class CustomUserAccountManager(BaseUserManager):
             if not current_user.is_superuser:
                 raise ValueError('Only a superuser can create another superuser.')'''
 
-        user = self.create_user(username=username, email=email, first_name=first_name,
-                                last_name=last_name, phone=phone, password=password)
+        user = self.create_user(username=username, first_name=first_name, last_name=last_name, email=email,
+                                phone_number=phone_number, password=password, team_name=team_name)
 
         user.is_staff = True
         user.is_superuser = True
 
         user.save()
-
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
         return user
 
 
@@ -127,24 +132,23 @@ class CustomUserAccount(AbstractUser, PermissionsMixin):
     objects = CustomUserAccountManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password', 'phone', 'team']
 
     def __str__(self) -> str:
         """returns user contact info"""
-        return f"username: {self.username}, email: {self.email}, phone: {self.phone}"
+        return f"username: {self.username}, First name: {self.first_name}, Last name: {self.last_name}, email: {self.email}, phone number: {self.phone_number}, Team: {self.team}"
 
 
 class CustomToken(Token):
     expires_at = models.DateTimeField()
     
     def refresh(self):
-        self.key = self.generate_key()
-        self.expires_at = timezone.now() + timezone.timedelta(hours=1)
-        self.save()
-        return self
+        user = self.user
+        self.delete()
+        new_token = CustomToken.objects.create(user=user)
+        return new_token
 
     def save(self, *args, **kwargs):
         if not self.key:
             self.key = self.generate_key()
-        self.expires_at = timezone.now() + timezone.timedelta(hours=1)
+        self.expires_at = timezone.now() + timezone.timedelta(hours=72)
         super().save(*args, **kwargs)

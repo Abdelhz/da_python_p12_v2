@@ -5,12 +5,11 @@ from Contract.models import Contract
 
 class EventManager(models.Manager):
 
-    def create_event(self, event_name, contract, contact_support_EE, date_start, date_end, location, attendees, notes):
+    def create_event(self, event_name, contract, date_start, date_end, location, attendees, notes):
         event = self.create(
             event_name=event_name,
             contract=contract,
             client=contract.client,
-            contact_support_EE=contact_support_EE,
             date_start=date_start,
             date_end=date_end,
             location=location,
@@ -39,15 +38,19 @@ class Event(models.Model):
     objects = EventManager()
 
     def __str__(self):
+        if self.contact_support_EE is not None:
+            contact_name = f"username : {self.contact_support_EE.first_name}, First name : {self.contact_support_EE.first_name}, Last name : {self.contact_support_EE.last_name}"
+        else:
+            contact_name = "No contact"
         return (
             f"Event name: {self.event_name}\n"
             f"Contract ID: {self.contract.unique_id}\n"
             f"Client: {self.client.full_name}, Company name: {self.client.company_name}\n"
             f"Client email: {self.client.email}, Client phone number: {self.client.phone_number}\n"
             f"Start date: {self.date_start}\nEnd date: {self.date_end}\n"
-            f"Contact: {self.contact_support_EE.first_name} {self.contact_support_EE.last_name}\n"
+            f"Epic Events support Contact: {contact_name}\n"
             f"Attendees: {self.attendees}\n"
-            f"Status: {'Signed' if self.status else 'Not Signed'}\n"
-            f"Notes: {self.notes}"
+            f"Status: {'Signed' if self.contract.signature_status else 'Not Signed'}\n"
+            f"Notes: {self.notes}\n\n"
                         
         )

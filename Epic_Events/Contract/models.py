@@ -47,7 +47,7 @@ class Contract(models.Model):
             f"Contract ID: {self.unique_id}\n"
             f"Client: {self.client.full_name}, Company name: {self.client.company_name}\n"
             f"Client email: {self.client.email}, Client phone number: {self.client.phone_number}\n"
-            f"Contact: {self.contact_sales_EE.first_name} {self.contact_sales_EE.last_name}\n"
+            f"EE_Contact: username : {self.contact_sales_EE.username}, First name: {self.contact_sales_EE.first_name}, Last name: {self.contact_sales_EE.last_name}\n"
             f"Total Amount: {self.total_amount}\nRemaining Amount: {self.remaining_amount}\n"
-            f"Creation Date: {self.creation_date}\nStatus: {'Signed' if self.status else 'Not Signed'}"
+            f"Creation Date: {self.creation_date}\nStatus: {'Signed' if self.signature_status else 'Not Signed'}"
         )

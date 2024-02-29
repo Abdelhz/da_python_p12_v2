@@ -4,14 +4,13 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 class ClientManager(models.Manager):
-    def create_client(self, full_name, email, phone_number, company_name, address, contact_sales_EE, information):
+    def create_client(self, full_name, email, phone_number, company_name, contact_sales_EE, information):
         
         client = self.create(
             full_name=full_name,
             email=email,
             phone_number=phone_number,
             company_name=company_name,
-            address=address,
             contact_sales_EE=contact_sales_EE,
             information=information
         )

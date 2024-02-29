@@ -1,7 +1,6 @@
-# Python
 from django.core.management.base import BaseCommand, CommandError
 from CustomUser.models import Team, CustomUserAccount
-
+from CustomUser.permissions import IsAuthenticated, IsSuperuser, IsSameUser
 
 valid_team_names = ['sales', 'management', 'support']
 
@@ -18,7 +17,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['list']:
-            self.list_teams()
+            self.list_teams(options)
         elif options['create']:
             self.create_team(options)
         elif options['delete']:
@@ -28,7 +27,7 @@ class Command(BaseCommand):
         else:
             raise CommandError('Invalid command')
 
-    def list_teams(self):
+    def list_teams(self, options):
         current_user_name = options['current_user'] or input("Enter current user's username: ")
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)

@@ -1,5 +1,5 @@
 from CustomUser.models import CustomUserAccount, CustomToken
-from Epic_Events.Epic_Event.utils import verify_token
+from Epic_Events.utils import verify_token
 from pathlib import Path
 import json
 

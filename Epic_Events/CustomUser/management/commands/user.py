@@ -29,14 +29,14 @@ class Command(BaseCommand):
         parser.add_argument('-delete', action='store_true', help='Delete a user')
         parser.add_argument('-update', action='store_true', help='Update a user')
         parser.add_argument('-read', action='store_true', help='Read a user details')
-        parser.add_argument('-createsuperuser', action='store_true', help='Create a new superuser')
+        parser.add_argument('-customcreatesuperuser', action='store_true', help='Create a new superuser')
         for field in USER_FIELDS:
             parser.add_argument(field, nargs='?', type=str)
 
 
     def handle(self, *args, **options):
         if options['list']:
-            self.list_users()
+            self.list_users(options)
         elif options['create']:
             self.create_user(options)
         elif options['delete']:
@@ -45,12 +45,12 @@ class Command(BaseCommand):
             self.update_user(options)
         elif options['read']:
             self.read_user(options)
-        elif options['createsuperuser']:
+        elif options['customcreatesuperuser']:
             self.create_superuser(options)
         else:
             raise CommandError('Invalid command')
 
-    def list_users(self):
+    def list_users(self, options):
         current_user_name = options['current_user'] or input("Enter current user's username: ")
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -65,7 +65,8 @@ class Command(BaseCommand):
                 self.stdout.write('No users exist.')
             else:
                 for user in users:
-                    self.stdout.write(f'Username: {user.username}, First Name: {user.first_name}, Last Name: {user.last_name}, Last Login: {user.last_login}')
+                    #self.stdout.write(f'Username: {user.username}, First Name: {user.first_name}, Last Name: {user.last_name}, Last Login: {user.last_login}')
+                    self.stdout.write(str(user))
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
         except CustomUserAccount.DoesNotExist:
@@ -115,20 +116,21 @@ class Command(BaseCommand):
             print(f'Invalid team name: {team_name}. Valid team_name options are : {", ".join(valid_team_names)}')
             team_name = input(USER_DESCRIPTIONS['team_name']).lower()
         
-        try:
-            current_user = CustomUserAccount.objects.get(username=current_user_name)
-            permission = IsAuthenticated(current_user).has_permission() and IsSuperuser(current_user).has_permission()
-            if not permission:
-                if not IsAuthenticated(current_user).has_permission():
-                    raise CommandError('Current user is not authenticated')
-                elif not IsSuperuser(current_user).has_permission() and CustomUserAccount.objects.filter(is_superuser=True).exists():
-                    raise CommandError('Current user is not a superuser and does not have permission to create a new user')
-        except CustomUserAccount.DoesNotExist:
-            raise CommandError('Current user does not exist')
-        
+        if CustomUserAccount.objects.all().exists():
+            try:
+                current_user = CustomUserAccount.objects.get(username=current_user_name)
+                permission = IsAuthenticated(current_user).has_permission() and IsSuperuser(current_user).has_permission()
+                if not permission:
+                    if not IsAuthenticated(current_user).has_permission():
+                        raise CommandError('Current user is not authenticated')
+                    elif not IsSuperuser(current_user).has_permission() and CustomUserAccount.objects.filter(is_superuser=True).exists():
+                        raise CommandError('Current user is not a superuser and does not have permission to create a new user')
+            except CustomUserAccount.DoesNotExist:
+                raise CommandError('Current user does not exist')
+
         try:
             with transaction.atomic():
-                user = CustomUserAccount.objects.create_superuser(username, email, first_name, last_name, phone_number, password, team_name)
+                user = CustomUserAccount.objects.create_superuser(username, first_name, last_name, email, phone_number, password, team_name)
                 self.stdout.write(f'Successfully created superuser {user}')
         except Exception as e:
             raise CommandError(str(e))

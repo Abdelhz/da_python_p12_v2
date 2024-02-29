@@ -7,7 +7,7 @@ from CustomUser.permissions import IsAuthenticated, IsSuperuser, IsSameUser
 from Client.permissions import IsClientContact, IsSales
 
 
-CLIENT_FIELDS = ['current_user', 'full_name', 'email', 'phone_number', 'company_name', 'address', 'contact_sales_EE', 'information']
+CLIENT_FIELDS = ['current_user', 'full_name', 'email', 'phone_number', 'company_name', 'contact_sales_EE', 'information']
 
 
 CLIENT_DESCRIPTIONS = {
@@ -16,7 +16,6 @@ CLIENT_DESCRIPTIONS = {
     'email': "Enter client's email: ",
     'phone_number': "Enter client's phone number: ",
     'company_name': "Enter client's company name: ",
-    'address': "Enter client's address: ",
     'contact_sales_EE': "Enter Epic Events contact's username: ",
     'information': "Enter additional information: ",
 }
@@ -37,7 +36,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['list']:
-            self.list_clients()
+            self.list_clients(options)
         elif options['list_contact_clients']:
             self.list_clients_contact(options)
         elif options['create']:
@@ -51,8 +50,10 @@ class Command(BaseCommand):
         else:
             raise CommandError('Invalid command')
 
-    def list_clients(self):
+    def list_clients(self, options):
+        
         current_user_name = options['current_user'] or input(CLIENT_DESCRIPTIONS['current_user'])
+        
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
             permission = IsAuthenticated(current_user).has_permission()
@@ -75,24 +76,24 @@ class Command(BaseCommand):
 
     def list_contact_clients(self, options):
         current_user_name = options['current_user'] or input(CLIENT_DESCRIPTIONS['current_user'])
-    try:
-        current_user = CustomUserAccount.objects.get(username=current_user_name)
-        permission = IsAuthenticated(current_user).has_permission() and IsSales(current_user).has_permission()
-    except CustomUserAccount.DoesNotExist:
-        raise CommandError('Current user does not exist')
-    
-    if not permission:
-        raise CommandError('You are not authenticated.')
-    
-    try:
-        clients = Client.objects.filter(contact_sales_EE=current_user)
-        if not clients:
-            self.stdout.write('No clients exist.')
-        else:
-            for client in clients:
-                self.stdout.write(f'Client Name: {client.full_name}, Email: {client.email}, Company Name: {client.company_name}')
-    except Exception as e:
-        self.stdout.write('An error occurred: {}'.format(e))
+        try:
+            current_user = CustomUserAccount.objects.get(username=current_user_name)
+            permission = IsAuthenticated(current_user).has_permission() and IsSales(current_user).has_permission()
+        except CustomUserAccount.DoesNotExist:
+            raise CommandError('Current user does not exist')
+        
+        if not permission:
+            raise CommandError('You are not authenticated.')
+        
+        try:
+            clients = Client.objects.filter(contact_sales_EE=current_user)
+            if not clients:
+                self.stdout.write('No clients exist.')
+            else:
+                for client in clients:
+                    self.stdout.write(f'Client Name: {client.full_name}, Email: {client.email}, Company Name: {client.company_name}')
+        except Exception as e:
+            self.stdout.write('An error occurred: {}'.format(e))
 
 
     def create_client(self, options):
@@ -101,8 +102,6 @@ class Command(BaseCommand):
         email = options['email'] or input(CLIENT_DESCRIPTIONS['email'])
         phone_number = options['phone_number'] or input(CLIENT_DESCRIPTIONS['phone_number'])
         company_name = options['company_name'] or input(CLIENT_DESCRIPTIONS['company_name'])
-        address = options['address'] or input(CLIENT_DESCRIPTIONS['address'])
-        contact_sales_EE_username = options['contact_sales_EE'] or input(CLIENT_DESCRIPTIONS['contact_sales_EE'])
         information = options['information'] or input(CLIENT_DESCRIPTIONS['information'])
 
         try:
@@ -118,7 +117,7 @@ class Command(BaseCommand):
             with transaction.atomic():
                 contact_sales_EE = current_user
 
-                client = Client.objects.create_client(full_name, email, phone_number, company_name, address, contact_sales_EE, information)
+                client = Client.objects.create_client(full_name, email, phone_number, company_name, contact_sales_EE, information)
                 self.stdout.write(f'Successfully created client {client.full_name}')
         
         except Exception as e:
@@ -189,10 +188,9 @@ class Command(BaseCommand):
         
         if not permission:
             raise CommandError("You are not authenticated or you are not the client's contact")
-        full_name = options['full_name'] or input('Enter full name of client to read: ')
         try:
             client = Client.objects.get(full_name=full_name)
-            client_info = f"Full Name: {client.full_name}\n, Email: {client.email}\n, Phone Number: {client.phone_number}\n, Company Name: {client.company_name}\n, Address: {client.address}\n, Epic Events Contact: {client.contact_sales_EE.username}\n, Information: {client.information}\n"
+            client_info = f"Full Name: {client.full_name}\n, Email: {client.email}\n, Phone Number: {client.phone_number}\n, Company Name: {client.company_name}\n, Epic Events Contact: {client.contact_sales_EE.username}\n, Information: {client.information}\n"
             self.stdout.write(client_info)
         except Client.DoesNotExist:
             raise CommandError('Client does not exist')
