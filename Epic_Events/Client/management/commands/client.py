@@ -69,12 +69,12 @@ class Command(BaseCommand):
                 self.stdout.write('No clients exist.')
             else:
                 for client in clients:
-                    self.stdout.write(f'Client Name: {client.full_name}, Email: {client.email}, Company Name: {client.company_name}')
+                    self.stdout.write(str(client))
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
     
 
-    def list_contact_clients(self, options):
+    def list_clients_contact(self, options):
         current_user_name = options['current_user'] or input(CLIENT_DESCRIPTIONS['current_user'])
         try:
             current_user = CustomUserAccount.objects.get(username=current_user_name)
@@ -91,7 +91,7 @@ class Command(BaseCommand):
                 self.stdout.write('No clients exist.')
             else:
                 for client in clients:
-                    self.stdout.write(f'Client Name: {client.full_name}, Email: {client.email}, Company Name: {client.company_name}')
+                    self.stdout.write(str(client))
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
 

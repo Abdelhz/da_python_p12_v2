@@ -42,15 +42,21 @@ class Event(models.Model):
             contact_name = f"username : {self.contact_support_EE.first_name}, First name : {self.contact_support_EE.first_name}, Last name : {self.contact_support_EE.last_name}"
         else:
             contact_name = "No contact"
+        
+        if self.client.contact_sales_EE is None:
+            client_contact = "No contact"
+        else:
+            client_contact = f"username : {self.client.contact_sales_EE.first_name}, First name : {self.client.contact_sales_EE.first_name}, Last name : {self.client.contact_sales_EE.last_name}"
         return (
             f"Event name: {self.event_name}\n"
             f"Contract ID: {self.contract.unique_id}\n"
             f"Client: {self.client.full_name}, Company name: {self.client.company_name}\n"
             f"Client email: {self.client.email}, Client phone number: {self.client.phone_number}\n"
+            f"Client contact: {client_contact}\n"
             f"Start date: {self.date_start}\nEnd date: {self.date_end}\n"
             f"Epic Events support Contact: {contact_name}\n"
             f"Attendees: {self.attendees}\n"
-            f"Status: {'Signed' if self.contract.signature_status else 'Not Signed'}\n"
-            f"Notes: {self.notes}\n\n"
+            f"Contract status: {'Signed' if self.contract.signature_status else 'Not Signed'}\n"
+            f"Notes: {self.notes}\n\n\n"
                         
         )

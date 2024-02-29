@@ -39,7 +39,12 @@ class Client(models.Model):
 
     def __str__(self):
         return (
-            f"Client name: {self.name}\nemail: {self.email}\n"
-            f" phone: {self.phone}\nclient contact name: {self.client_contact_name}\n"
-            f"Epic Events contact name: {self.contact_sales_EE.first_name} {self.contact_sales_EE.last_name}\n"
+            f"Client name: {self.full_name}\n"
+            f"Email: {self.email}\n"
+            f"Phone number: {self.phone_number}\n"
+            f"Company name : {self.company_name}\n"
+            f"Epic Events contact name: username : {self.contact_sales_EE.username}, First name : {self.contact_sales_EE.first_name}, Last name : {self.contact_sales_EE.last_name}\n"
+            f"Client information : {self.information}\n"
+            f"Creation date : {self.creation_date}\n"
+            f"Last update : {self.last_update}\n"
         )

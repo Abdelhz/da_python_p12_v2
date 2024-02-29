@@ -89,7 +89,7 @@ class Command(BaseCommand):
         try:
             assigned_events = Event.objects.filter(contact_support_EE=current_user)
 
-            if not events:
+            if not assigned_events:
                 self.stdout.write('No events exist.')
             else:
                 self.stdout.write("Events that are assigned to the user : ")
@@ -170,7 +170,7 @@ class Command(BaseCommand):
 
         try:
             event.delete()
-            self.stdout.write(f'Successfully deleted contract with ID {contract.unique_id}.')
+            self.stdout.write(f"Successfully delete Event contract with ID {contract.unique_id}.")
         except Exception as e:
             self.stdout.write('An error occurred: {}'.format(e))
 

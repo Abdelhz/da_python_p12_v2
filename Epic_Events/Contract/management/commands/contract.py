@@ -117,7 +117,7 @@ class Command(BaseCommand):
             raise CommandError('Client does not exist')
 
         if not permission:
-            raise CommandError('You are not authenticated or you are not a member of the sales team.')
+            raise CommandError('You are not authenticated or you are not a member of the management team.')
         
         try:
             with transaction.atomic():
