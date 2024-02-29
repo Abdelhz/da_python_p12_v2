@@ -21,6 +21,7 @@ def verify_token(token):
 def refresh_or_create_token(user):
     try:
         token, created = CustomToken.objects.get_or_create(user=user)
+        
         if not created and not verify_token(token):
             token = token.refresh()
         

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'Client',
     'Contract',
     'Event',
+    'django_extensions',
 ]
 
 REST_FRAMEWORK = {
