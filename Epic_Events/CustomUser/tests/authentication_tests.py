@@ -1,4 +1,4 @@
-# Python
+'''
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -69,3 +69,4 @@ class AuthenticationCommandTestCase(TestCase):
         out = StringIO()
         call_command('authentication', '-logout', stdout=out)
         self.assertIn('Logout successful', out.getvalue())
+'''

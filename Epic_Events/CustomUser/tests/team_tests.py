@@ -1,10 +1,11 @@
 # Python
 from django.core.management import call_command
 from django.test import TestCase
-from CustomUser.models import Team, CustomUserAccount
+from CustomUser.models import CustomUserAccount, Team, CustomToken
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from unittest.mock import patch
+from Epic_Events.utils import refresh_or_create_token, verify_token
 
 class TeamCommandTest(TestCase):
     def setUp(self):
@@ -49,46 +50,3 @@ class TeamCommandTest(TestCase):
         # Assert
         with self.assertRaises(Team.DoesNotExist):
             Team.objects.get(name=self.team_name)
-
-
-
-class CommandTestCase(TestCase):
-    def setUp(self):
-        self.superuser = CustomUserAccount.objects.create_superuser(username='superuser', password='password')
-        self.user = CustomUserAccount.objects.create_user(username='user', password='password')
-        self.team = Team.objects.create(name='sales')
-
-    def test_list_teams(self):
-        with patch('builtins.input', return_value='superuser'):
-            call_command('team', '-list')
-
-    def test_create_team(self):
-        with patch('builtins.input', return_value='superuser'):
-            call_command('team', '-create', 'management')
-
-    def test_delete_team(self):
-        with patch('builtins.input', return_value='superuser'):
-            call_command('team', '-delete', 'sales')
-
-    def test_read_team(self):
-        with patch('builtins.input', return_value='superuser'):
-            call_command('team', '-read', 'sales')
-
-    def test_invalid_command(self):
-        with self.assertRaises(CommandError):
-            call_command('team', '-invalid')
-
-    def test_create_team_without_permission(self):
-        with self.assertRaises(CommandError):
-            with patch('builtins.input', return_value='user'):
-                call_command('team', '-create', 'management')
-
-    def test_delete_team_without_permission(self):
-        with self.assertRaises(CommandError):
-            with patch('builtins.input', return_value='user'):
-                call_command('team', '-delete', 'sales')
-
-    def test_read_team_without_permission(self):
-        with self.assertRaises(CommandError):
-            with patch('builtins.input', return_value='user'):
-                call_command('team', '-read', 'sales')

@@ -2,7 +2,8 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from io import StringIO
-from CustomUser.models import CustomUserAccount, Team
+from CustomUser.models import CustomUserAccount, Team, CustomToken
+from Epic_Events.utils import refresh_or_create_token, verify_token
 
 
 class UserCommandTestCase(TestCase):
@@ -50,6 +51,15 @@ class UserCommandTestCase(TestCase):
             is_superuser=False
         )
         #self.team = Team.objects.create(name='management')
+        self.token1 = CustomToken.objects.create(user=self.user1)
+        self.token2 = CustomToken.objects.create(user=self.user2)
+        self.token3 = CustomToken.objects.create(user=self.user3)
+        self.token4 = CustomToken.objects.create(user=self.user4)
+
+        self.token1 = refresh_or_create_token(self.user1)
+        self.token2 = refresh_or_create_token(self.user2)
+        self.token3 = refresh_or_create_token(self.user3)
+        self.token4 = refresh_or_create_token(self.user4)
 
     def test_list_users(self):
         call_command('authentication', '-login', stdout=self.out)
@@ -88,7 +98,7 @@ class UserCommandTestCase(TestCase):
         self.assertIn('Username: testuser', self.out.getvalue())
 
     def test_create_superuser(self):
-        call_command('user', '-createsuperuser', 'username=superuser', 'password=superpassword', 'email=superuser@example.com', 'first_name=Super', 'last_name=User', 'phone_number=1122334455', 'team_name=management', stdout=self.out)
+        call_command('user', '-customcreatesuperuser', 'username=superuser', 'password=superpassword', 'email=superuser@example.com', 'first_name=Super', 'last_name=User', 'phone_number=1122334455', 'team_name=management', stdout=self.out)
         self.assertIn('Successfully created superuser', self.out.getvalue())
 
 '''
