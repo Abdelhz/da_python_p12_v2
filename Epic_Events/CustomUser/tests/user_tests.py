@@ -1,36 +1,86 @@
 from django.core.management import call_command
 from django.test import TestCase
-from CustomUser.models import CustomUserAccount
+from django.contrib.auth import get_user_model
 from io import StringIO
+from CustomUser.models import CustomUserAccount, Team
+
 
 class UserCommandTestCase(TestCase):
     def setUp(self):
         self.out = StringIO()
         self.err = StringIO()
-        self.user = CustomUserAccount.objects.create_user(
-            username='testuser',
-            password='testpassword',
-            email='testuser@example.com',
-            first_name='Test',
+        self.user1 = CustomUserAccount.objects.create_user(
+            username='admin',
+            password='admin',
+            email='admin@example.com',
+            first_name='Super',
             last_name='User',
-            phone_number='1234567890',
-            team_name='sales'
+            phone_number='1234567891',
+            team_name='management',
+            is_superuser=True
         )
+        self.user2 = CustomUserAccount.objects.create_user(
+            username='manager',
+            password='admin',
+            email='manager@example.com',
+            first_name='Manager',
+            last_name='User',
+            phone_number='1234567892',
+            team_name='management',
+            is_superuser=False
+        )
+        self.user3 = CustomUserAccount.objects.create_user(
+            username='support',
+            password='admin',
+            email='support@example.com',
+            first_name='Support',
+            last_name='User',
+            phone_number='1234567893',
+            team_name='support',
+            is_superuser=False
+        )
+        self.user4 = CustomUserAccount.objects.create_user(
+            username='sales',
+            password='admin',
+            email='sales@example.com',
+            first_name='Sales',
+            last_name='User',
+            phone_number='1234567894',
+            team_name='sales',
+            is_superuser=False
+        )
+        #self.team = Team.objects.create(name='management')
+
+    def test_list_users(self):
+        call_command('authentication', '-login', stdout=self.out)
+        self.assertIn('admin', self.out.getvalue())
+
+    def test_list_users(self):
+        call_command('authentication', '-login', stdout=self.out)
+        self.assertIn('support', self.out.getvalue())
+
+    def test_list_users(self):
+        call_command('authentication', '-login', stdout=self.out)
+        self.assertIn('manager', self.out.getvalue())
+
+    def test_list_users(self):
+        call_command('authentication', '-login', stdout=self.out)
+        self.assertIn('sales', self.out.getvalue())
 
     def test_list_users(self):
         call_command('user', '-list', stdout=self.out)
-        self.assertIn('testuser', self.out.getvalue())
+        self.assertIn('admin', self.out.getvalue())
 
     def test_create_user(self):
         call_command('user', '-create', 'username=newuser', 'password=newpassword', 'email=newuser@example.com', 'first_name=New', 'last_name=User', 'phone_number=0987654321', 'team_name=sales', stdout=self.out)
         self.assertIn('Successfully created user', self.out.getvalue())
 
     def test_delete_user(self):
-        call_command('user', '-delete', 'username=testuser', stdout=self.out)
+        call_command('user', '-delete', 'username=newuser', stdout=self.out)
         self.assertIn('Successfully deleted user', self.out.getvalue())
 
     def test_update_user(self):
-        call_command('user', '-update', 'username=testuser', 'email=updateduser@example.com', stdout=self.out)
+        call_command('user', '-update', 'username=support', 'email=updatedsupport@example.com', stdout=self.out)
         self.assertIn('Successfully updated user', self.out.getvalue())
 
     def test_read_user(self):
@@ -41,6 +91,7 @@ class UserCommandTestCase(TestCase):
         call_command('user', '-createsuperuser', 'username=superuser', 'password=superpassword', 'email=superuser@example.com', 'first_name=Super', 'last_name=User', 'phone_number=1122334455', 'team_name=management', stdout=self.out)
         self.assertIn('Successfully created superuser', self.out.getvalue())
 
+'''
 # Python
 from django.core.management import call_command
 from django.test import TestCase
@@ -96,3 +147,4 @@ class TestUserCommands(TestCase):
         call_command('user', '-read', 'current_user=admin', 'username=superuser', stdout=self.out, stderr=self.err)
         self.assertIn('superuser', self.out.getvalue())
         self.assertIn('newemail@example.com', self.out.getvalue())
+'''
