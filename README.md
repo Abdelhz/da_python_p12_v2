@@ -90,6 +90,12 @@ password = you_database_password
 sentry_link = Use your own sentry link here
 ```
 
+10. Create a superuser:
+
+```bash
+python manage.py user -createsuperuser
+```
+
 ## Django applications
 
 **There are 4 django applications in this Django rest project:**
@@ -111,7 +117,6 @@ sentry_link = Use your own sentry link here
 - **This application also containes one command manager files :**
 
 1. client.py : to manage CRUD operations for clients (*Client* and *ClientManager*).
-
 
 ### *Contract*
 
@@ -206,7 +211,6 @@ python manage.py team -list
 ```bash
 python manage.py team -create
 ```
-
 
 **Delete user : Delete a team:**
 
@@ -391,11 +395,13 @@ python manage.py test Event
 ```bash
 coverage run manage.py test
 ```
+
 *Get the test result:*
 
 ```bash
 coverage report
 ```
+
 or
 
 ```bash
